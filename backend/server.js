@@ -2,6 +2,7 @@ const express=require('express');
 const cookieParser = require('cookie-parser');
 const connectDb = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
+const EventRoutes = require('./routes/user.routes');
 const cors = require('cors');
 
 
@@ -25,6 +26,7 @@ app.use(
 
 app.use('/api/auth',authRoutes);
 app.use('/api/events', require('./routes/event.routes'));
+app.use('/api/userEvents',EventRoutes);
 
 
 app.listen(PORT,()=>{

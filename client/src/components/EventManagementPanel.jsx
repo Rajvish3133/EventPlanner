@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Menu, X, Search, Calendar, MapPin, User, LogOut, Clock, Filter } from 'lucide-react';
 import api from '../axios';
+import { getToken, getUser, isAuthenticated, logout } from '../utils/auth';
 
 const EventManagementPanel = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -9,12 +10,50 @@ const EventManagementPanel = () => {
   const [dateFilter, setDateFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [userData,setUserData] = useState({});
 
   // Sample events data
 
 
   const [events, setEvents] = useState([]);
-    //   time: '10:00 AM',
+  
+  useEffect(() => {
+    // Check if user is authenticated
+    if (!isAuthenticated()) {
+      // Redirect to login if not authenticated
+      window.location.href = '/login';
+      return;
+    }
+
+    setUserData( getUser());
+
+    // Get events with token
+    const fetchEvents = async () => {
+      try {
+        const token = getToken();
+        const response = await api.get('/api/events', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setEvents(response.data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        if (error.response?.status === 401) {
+          // Handle unauthorized access
+          logout();
+          window.location.href = '/login';
+        }
+      }
+    };
+
+
+    fetchEvents();
+  }, []);
+
+ 
+
+    //   time: '10:00 AM',[]
     //   venue: 'Convention Center, Delhi',
     //   description: 'Annual technology conference featuring industry leaders and innovative startups.',
     //   image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop',
@@ -55,27 +94,66 @@ const EventManagementPanel = () => {
     //   rsvp: null
     // }
 
-      const fetchEvents=async()=>{
-    //fetch events from backend
-    const response=await api.get('/events/getEvents');
-    const data=await response.data;
-    console.log(data);
-    setEvents(data.events);
+      const fetchEvents = async () => {
+    try {
+      const token = getToken();
+      const response = await api.get('/events/getEvents', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = response.data;
+      console.log(data);
+      setEvents(data.events);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      if (error.response?.status === 401) {
+        logout();
+        window.location.href = '/login';
+      }
+    }
   }
-  useEffect(()=>{
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      window.location.href = '/login';
+      return;
+    }
     fetchEvents();
-  },[])
+  }, [])
 
   const token = localStorage.getItem('token')
   console.log("Token from localStorage:", token);
 
+  console.log("User Data:", userData);
+
   
 
 
-  const handleRSVP = (eventId, status) => {
-    setEvents(events.map(event => 
-      event.id === eventId ? { ...event, rsvp: status } : event
-    ));
+  const handleRSVP = async(eventId, status) => {
+    try {
+      console.log("Handling RSVP for event:", eventId, "with status:", status);
+      // const token = getToken();
+      // Update local state immediately for better UX
+      // console.log("Updating RSVP locally:", eventId, status);
+      console.log(events);
+
+      setEvents(events.map(event => 
+        event.id === eventId ? { ...event, status: status } : event
+      ));
+      // Call API to update RSVP on server
+      console.log("Updating RSVP on server:", userData.id );
+      const response = await api.put(`/userEvents/${userData.id}/${eventId}`, {status}, {  headers: {  Authorization: `Bearer ${token}` } });
+      console.log("RSVP updated on server:", response.data);
+    } catch (error) {
+      console.error('Error updating RSVP status:', error);
+      alert('Failed to update RSVP status. Please try again.');
+      // If error is due to unauthorized access, redirect to login
+      if (error.response?.status === 401) {
+        logout();
+        window.location.href = '/login';
+      }
+    }
   };
 
   const filteredEvents = events.filter(event => {
@@ -95,6 +173,8 @@ const EventManagementPanel = () => {
       maybe: isSelected ? 'bg-yellow-500 text-white border-yellow-600' : 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100',
       decline: isSelected ? 'bg-red-500 text-white border-red-600' : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
     };
+
+    
 
     return (
       <button
@@ -130,7 +210,7 @@ const EventManagementPanel = () => {
         
         <p className={`text-sm mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{event.description}</p>
         
-        {event.rsvp && (
+        {events.rsvp && (
           <div className="mb-3 text-sm font-medium text-center py-2 rounded-lg bg-blue-50 text-blue-700">
             You selected: <span className="capitalize font-bold">{event.rsvp}</span>
           </div>
@@ -138,21 +218,21 @@ const EventManagementPanel = () => {
         
         <div className="flex gap-2">
           <RSVPButton 
-            status="going" 
+            status="Going" 
             currentRSVP={event.rsvp}
-            onClick={() => handleRSVP(event.id, 'going')}
+            onClick={() => handleRSVP(event._id, 'Going')}
             label="🟢 Going"
           />
           <RSVPButton 
-            status="maybe" 
+            status="Maybe" 
             currentRSVP={event.rsvp}
-            onClick={() => handleRSVP(event.id, 'maybe')}
+            onClick={() => handleRSVP(event._id, 'Maybe')}
             label="🟡 Maybe"
           />
           <RSVPButton 
-            status="decline" 
+            status="Decline" 
             currentRSVP={event.rsvp}
-            onClick={() => handleRSVP(event.id, 'decline')}
+            onClick={() => handleRSVP(event._id, 'Decline')}
             label="🔴 Decline"
           />
         </div>
@@ -195,9 +275,9 @@ const EventManagementPanel = () => {
               </button>
               <div className="flex items-center space-x-3">
                 <div className={`w-10 h-10 rounded-full ${darkMode ? 'bg-blue-600' : 'bg-blue-500'} flex items-center justify-center text-white font-bold`}>
-                  C
+                  {userData?.name ? userData.name.charAt(0).toUpperCase() : 'U'}
                 </div>
-                <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-700'}`}>Welcome, Raj</span>
+                <span className={`font-medium ${darkMode ? 'text-white' : 'text-gray-700'}`}>Welcome, {userData?.name}</span>
               </div>
               <button className="flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
                 <LogOut className="w-4 h-4" />
@@ -282,8 +362,8 @@ const EventManagementPanel = () => {
             <div className="mb-8">
               <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Upcoming Events</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredEvents.map(event => (
-                  <EventCard key={event.id} event={event} />
+                {events.map(event => (
+                  <EventCard key={event._id} event={event} />
                 ))}
               </div>
               {filteredEvents.length === 0 && (
@@ -300,8 +380,8 @@ const EventManagementPanel = () => {
             <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>My RSVP Events</h2>
             {myRSVPEvents.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {myRSVPEvents.map(event => (
-                  <EventCard key={event.id} event={event} showChangeOption={true} />
+                {events.map(event => (
+                  <EventCard key={event._id} event={event} showChangeOption={true} />
                 ))}
               </div>
             ) : (
