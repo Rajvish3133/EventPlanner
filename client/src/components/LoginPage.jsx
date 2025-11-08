@@ -4,23 +4,23 @@ import { useNavigate } from 'react-router-dom';
 import api from '../axios';
 
 export default function LoginPage() {
-  // State for login form data
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   
-  // State for password visibility
+
   const [showPassword, setShowPassword] = useState(false);
-  // State to track focused field
+
   const [focusedField, setFocusedField] = useState('');
-  // State for validation errors
+
   const [errors, setErrors] = useState({});
-  // State for success message
+
   const [submitted, setSubmitted] = useState(false);
 
-  // --- Validation Logic ---
+
   const validateField = (name, value) => {
     switch (name) {
       case 'email':
@@ -33,9 +33,9 @@ export default function LoginPage() {
     }
   };
 
-  // --- Event Handlers ---
 
-  // Handles input changes
+
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -45,7 +45,7 @@ export default function LoginPage() {
     }
   };
 
-  // Handles blur event for validation
+
   const handleBlur = (e) => {
     const { name, value } = e.target;
     const error = validateField(name, value);
@@ -55,11 +55,11 @@ export default function LoginPage() {
     setFocusedField('');
   };
 
-  // Handles form submission
+  
   const handleSubmit = async(e) => {
     e.preventDefault();
     
-    // Validate all fields on submit
+
     const newErrors = {};
     Object.keys(formData).forEach(key => {
       const error = validateField(key, formData[key]);
@@ -72,22 +72,24 @@ export default function LoginPage() {
     }
 
     try {
-      // Call login API
+
       const res = await api.post('/auth/login', formData);
       console.log(res.data);
       
-      // Store token and user data in localStorage
+     
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       
-      // Show success message
+
       setSubmitted(true);
       
-      // Navigate to dashboard based on role
+
       setTimeout(() => {
-        if (res.data.user.role === 'admin') {
+        if (res.data.user.role === 'Admin') {
+          console.log('Navigating to admin panel');
           navigate('/admin');
         } else {
+          console.log('Navigating to dashboard');
           navigate('/dashboard');
         }
       }, 1000);
@@ -101,7 +103,7 @@ export default function LoginPage() {
     }
   };
 
-  // Helper to show green checkmark
+
   const isFieldValid = (name) => formData[name] && !errors[name];
 
   return (

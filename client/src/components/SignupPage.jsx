@@ -4,7 +4,7 @@ import api from '../axios'
 import { useNavigate } from 'react-router-dom';
 
 export default function SignupPage() {
-  // State to hold all form data
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
@@ -14,20 +14,19 @@ export default function SignupPage() {
     role: ''
   });
 
-  // State for password visibility toggle
+
   const [showPassword, setShowPassword] = useState(false);
-  // State to track which field is currently focused for dynamic styling
+
   const [focusedField, setFocusedField] = useState('');
-  // State to store validation error messages
+
   const [errors, setErrors] = useState({});
-  // State to show a success message after submission
+
   const [submitted, setSubmitted] = useState(false);
 
-  // Available roles for the dropdown
+
   const roles = ['Client', 'Admin'];
 
-  // --- Validation Logic ---
-  // Function to validate individual fields based on their name
+
   const validateField = (name, value) => {
     switch (name) {
       case 'name':
@@ -37,7 +36,7 @@ export default function SignupPage() {
       case 'password':
         return value.length < 8 ? 'Password must be at least 8 characters' : '';
       case 'Phonenumber':
-        // Cleans non-digits and checks for 10 digits
+   
         return !/^\d{10}$/.test(value.replace(/\D/g, '')) ? 'Phone must be 10 digits' : '';
       case 'role':
         return !value ? 'Please select a role' : '';
@@ -46,34 +45,30 @@ export default function SignupPage() {
     }
   };
 
-  // --- Event Handlers ---
-
-  // Handles input changes for all form fields
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
-    // Clear error for the field as soon as user starts typing again
+  
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Handles blur event (when a field loses focus) for validation
   const handleBlur = (e) => {
     const { name, value } = e.target;
     const error = validateField(name, value);
     if (error) {
       setErrors(prev => ({ ...prev, [name]: error }));
     }
-    setFocusedField(''); // Clear focused field state
+    setFocusedField(''); 
   };
 
-  // Handles form submission
+
   const handleSubmit = async (e) => {
 
     e.preventDefault();
-    // console.log(formData);
+
     const res = await api.post('/auth/register', formData);
     console.log(res.data);
 
@@ -83,22 +78,22 @@ export default function SignupPage() {
 
     navigate('/login');
 
-    // --- Full Form Validation Before Submission ---
+    
     const newErrors = {};
     Object.keys(formData).forEach(key => {
       const error = validateField(key, formData[key]);
       if (error) newErrors[key] = error;
     });
 
-    // If there are any errors, update state and prevent submission
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    // --- Successful Submission Logic ---
+
     setSubmitted(true); // Show success message
-    // Reset form and hide success message after 3 seconds
+
     setTimeout(() => {
       setSubmitted(false);
       setFormData({ name: '', email: '', password: '', Phonenumber: '', role: '' }); // Clear form
@@ -106,11 +101,11 @@ export default function SignupPage() {
     }, 3000);
   };
 
-  // Helper function to check if a field is valid for the green checkmark icon
+
   const isFieldValid = (name) => formData[name] && !errors[name];
 
   return (
-    // Main container for the entire page, using a flexbox to center content
+  
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-5xl bg-white rounded-3xl border-2 border-gray-200 shadow-2xl overflow-hidden flex flex-col md:flex-row md:h-[90vh] md:max-h-[850px]">
 

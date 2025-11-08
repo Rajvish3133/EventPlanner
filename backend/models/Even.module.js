@@ -16,7 +16,7 @@ const eventSchema = new mongoose.Schema({
   rsvps: [
     {
       userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      // status: { type: String, enum: ["Going","Maybe","Decline"], default: "Maybe" },
+      status: { type: String, enum: ["Going","Maybe","Decline"], default: "" },
       updatedAt: { type: Date, default: Date.now }
     }
   ]

@@ -17,17 +17,17 @@ const insertUserRSVP = async (req, res) => {
             return res.status(404).json({ msg: 'Event not found' });
         }
 
-        // ✅ Check if the user already has an RSVP for this event
-        const existingRSVP = user.rsvps.find(
+        // ✅ Check if RSVP already exists in USER.rsvps
+        const existingUserRSVP = user.rsvps.find(
             r => String(r.eventId) === String(eventId)
         );
 
-        if (existingRSVP) {
-            // ✅ Update status + updatedAt
-            existingRSVP.status = status;
-            existingRSVP.updatedAt = new Date();
+        if (existingUserRSVP) {
+            // ✅ Update status & timestamp
+            existingUserRSVP.status = status;
+            existingUserRSVP.updatedAt = new Date();
         } else {
-            // ✅ Insert new RSVP
+            // ✅ Insert new
             user.rsvps.push({
                 eventId,
                 status,
@@ -37,9 +37,29 @@ const insertUserRSVP = async (req, res) => {
 
         await user.save();
 
+        // ✅ Same logic for EVENT.rsvps
+        const existingEventRSVP = event.rsvps.find(
+            r => String(r.userId) === String(userId)
+        );
+
+        if (existingEventRSVP) {
+            // ✅ Update status & timestamp in event.rsvps
+            existingEventRSVP.status = status;
+            existingEventRSVP.updatedAt = new Date();
+        } else {
+            // ✅ Insert new
+            event.rsvps.push({
+                userId,
+                status,
+                updatedAt: new Date(),
+            });
+        }
+
+        await event.save();
+
         return res.status(200).json({
             msg: 'RSVP saved successfully',
-            rsvps: user.rsvps,
+            event,
         });
 
     } catch (error) {

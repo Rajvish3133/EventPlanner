@@ -672,19 +672,19 @@ const EventAdminPanel = () => {
                 <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                   <div className="bg-green-50 p-3 sm:p-4 rounded-lg border-2 border-green-200">
                     <div className="text-xl sm:text-2xl font-bold text-green-700">
-                      {selectedEvent.rsvps.filter(r => r.status === 'attending').length}
+                      {selectedEvent.rsvps.filter(r => r.status === 'Going').length}
                     </div>
-                    <div className="text-xs sm:text-sm text-green-600 mt-1">Attending</div>
+                    <div className="text-xs sm:text-sm text-green-600 mt-1">Going</div>
                   </div>
                   <div className="bg-yellow-50 p-3 sm:p-4 rounded-lg border-2 border-yellow-200">
                     <div className="text-xl sm:text-2xl font-bold text-yellow-700">
-                      {selectedEvent.rsvps.filter(r => r.status === 'maybe').length}
+                      {selectedEvent.rsvps.filter(r => r.status === 'Maybe').length}
                     </div>
                     <div className="text-xs sm:text-sm text-yellow-600 mt-1">Maybe</div>
                   </div>
                   <div className="bg-red-50 p-3 sm:p-4 rounded-lg border-2 border-red-200">
                     <div className="text-xl sm:text-2xl font-bold text-red-700">
-                      {selectedEvent.rsvps.filter(r => r.status === 'not attending').length}
+                      {selectedEvent.rsvps.filter(r => r.status === 'Decline').length}
                     </div>
                     <div className="text-xs sm:text-sm text-red-600 mt-1">Not Attending</div>
                   </div>
